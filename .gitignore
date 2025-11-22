@@ -203,8 +203,8 @@ __marimo__/
 .streamlit/secrets.toml
 
 node_modules/
-*.onnx
-*.ipynb
+# *.onnx
+# *.ipynb
 # *.txt
 outputs
 !.gitkeep

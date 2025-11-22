@@ -205,10 +205,10 @@ __marimo__/
 node_modules/
 *.onnx
 *.ipynb
-*.txt
+# *.txt
 outputs
 !.gitkeep
 !convert.log
 *.pt
-model
+# model
 !demo.ipynb

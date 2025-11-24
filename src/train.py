@@ -10,21 +10,22 @@ from task import FormulaNetLit
 
 @hydra.main(version_base="1.3.2",config_path="../config", config_name="train.yaml")
 def main(cfg: DictConfig):
+    print(1)
     if cfg.get("seed"):
         L.seed_everything(cfg.seed, workers=True)
     
     torch.set_float32_matmul_precision("medium")
-
+    print(2)
     model_config = OmegaConf.to_container(cfg.model)
     training_config = OmegaConf.to_container(cfg.training)
     data_config = OmegaConf.to_container(cfg.data)
 
     model = FormulaNetLit( model_config, training_config)
     logging.log(logging.INFO, f"Model initialized.")
-
+    print(3)
     datamodule = MERDataModule(data_config)
     logging.log(logging.INFO, f"Dataset initialized.")
-
+    print(4)
     if cfg.trainer.profiler:
         from lightning.pytorch.profilers import PyTorchProfiler
         profiler = PyTorchProfiler(
@@ -35,9 +36,11 @@ def main(cfg: DictConfig):
             )
     else:
         profiler = None
+    
+    print(5)
     trainer = hydra.utils.instantiate(cfg.trainer, profiler=profiler)
     logging.log(logging.INFO, f"Trainer initialized.")
-
+    print(6)
     if cfg.training.resume_from_ckpt:
         logging.log(logging.INFO, f"Resuming from checkpoint: {cfg.training.resume_from_ckpt}")
     trainer.fit(model, datamodule=datamodule, ckpt_path=cfg.training.resume_from_ckpt)

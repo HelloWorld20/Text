@@ -8,9 +8,11 @@ import onnxruntime as ort
 
 ort.set_default_logger_severity(3)
 
+device = "cuda" if ort.get_device() == "GPU" else "cpu"
 
 def generate_text(model_dir, image_path):
     model = ORTModelForVision2Seq.from_pretrained(model_dir)
+    model.to(device)
     processor = EvalMERImageProcessor(image_size={"height": 384, "width": 384})
     text_processor = TextProcessor(config={
         "tokenizer_path": "data/tokenizer",

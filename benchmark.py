@@ -11,7 +11,7 @@ ort.set_default_logger_severity(3)
 device = "cuda" if ort.get_device() == "GPU" else "cpu"
 
 def generate_text(model_dir, image_path):
-    model = ORTModelForVision2Seq.from_pretrained(model_dir)
+    model = ORTModelForVision2Seq.from_pretrained(model_dir, local_files_only=True)
     model.to(device)
     processor = EvalMERImageProcessor(image_size={"height": 384, "width": 384})
     text_processor = TextProcessor(config={
@@ -29,7 +29,7 @@ def generate_text(model_dir, image_path):
     pixel_values = processor(Image.open(image_path).convert("RGB")).unsqueeze(0)
 
     t0 = time.time()
-    outputs = model.generate(pixel_values)
+    outputs = model.generate(pixel_values, use_cache=False)
     latency = time.time() - t0
 
     text = text_processor.tokenizer.decode(outputs[0], skip_special_tokens=True)

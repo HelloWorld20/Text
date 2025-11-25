@@ -42,7 +42,11 @@ class FineGrainedPruner:
         """将掩码应用到模型参数以保持稀疏"""
         for name, param in model.named_parameters():
             if name in self.masks:
-                param *= self.masks[name]
+                mask = self.masks[name]
+                if mask.device != param.device or mask.dtype != param.dtype:
+                    mask = mask.to(device=param.device, dtype=param.dtype)
+                    self.masks[name] = mask
+                param.mul_(mask)
 
     @staticmethod
     @torch.no_grad()
@@ -71,14 +75,22 @@ class MaskingCallback(Callback):
         with torch.no_grad():
             for name, param in model.named_parameters():
                 if name in self.masks and param.grad is not None:
-                    param.grad.mul_(self.masks[name])
+                    mask = self.masks[name]
+                    if mask.device != param.grad.device or mask.dtype != param.grad.dtype:
+                        mask = mask.to(device=param.grad.device, dtype=param.grad.dtype)
+                        self.masks[name] = mask
+                    param.grad.mul_(mask)
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx) -> None:
         model = pl_module.model
         with torch.no_grad():
             for name, param in model.named_parameters():
                 if name in self.masks:
-                    param.mul_(self.masks[name])
+                    mask = self.masks[name]
+                    if mask.device != param.device or mask.dtype != param.dtype:
+                        mask = mask.to(device=param.device, dtype=param.dtype)
+                        self.masks[name] = mask
+                    param.mul_(mask)
 
 
 def _detect_accelerator_and_devices() -> tuple[str, int]:
@@ -92,7 +104,7 @@ def _detect_accelerator_and_devices() -> tuple[str, int]:
 
 @hydra.main(version_base="1.3.2", config_path="../config", config_name="train.yaml")
 def main(cfg: DictConfig):
-    """运行 LTH 初级版：预训练→剪枝→回滚→稀疏微调"""
+    """运行 LTH ：预训练→剪枝→回滚→稀疏微调"""
     if cfg.get("seed"):
         L.seed_everything(cfg.seed, workers=True)
 
@@ -171,6 +183,8 @@ def main(cfg: DictConfig):
         max_epochs=pretrain_epochs,
         accelerator=acc,
         devices=devs,
+        num_sanity_val_steps=0,
+        limit_val_batches=0,
         val_check_interval=1 if not use_hf else cfg.trainer.get("val_check_interval", 1000),
     )
     trainer_dense.fit(lit, datamodule=datamodule)
@@ -198,10 +212,13 @@ def main(cfg: DictConfig):
         accelerator=acc,
         devices=devs,
         callbacks=existing_callbacks,
+        num_sanity_val_steps=0,
+        limit_val_batches=0,
         val_check_interval=1 if not use_hf else cfg.trainer.get("val_check_interval", 1000),
     )
     trainer_sparse.fit(lit, datamodule=datamodule)
 
 
 if __name__ == "__main__":
+    print('Start training111')
     main()

@@ -1,3 +1,14 @@
+model/config.json
+
+when model_type: 'vit', below commands are available:
+python src/pruning.py 
+python run_quantize.py
+python src/onnx_sparse_ops.py
+
+when model_type: 'vision-encoder-decoder', below commands are available:
+python run_benchmark.py --compressed_dir ./model/onnx_sparse
+
+
 <p align="center" style="margin-bottom: 0">
   <img src="./assets/svg/logo-text.svg#gh-light-mode-only" alt="Texo Logo" width="300"/>
   <img src="./assets/svg/logo-text-dark.svg#gh-dark-mode-only" alt="Texo Logo" width="300"/>

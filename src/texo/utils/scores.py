@@ -1,16 +1,23 @@
 import evaluate
 from rapidfuzz.distance import Levenshtein
 
-bleu = evaluate.load("bleu", keep_in_memory=False)
+bleu = None
 
 def compute_bleu(pred_str: list[str], ref_str: list[str]):
-    """compute bleu score of two lists of strings, notice that the max order is 4, so any ref_str less than 4 words would have 0 bleu score."""
+    """计算 BLEU 分数，首次调用时延迟加载 evaluate 模块"""
+    global bleu
+    if bleu is None:
+        try:
+            bleu = evaluate.load("bleu", keep_in_memory=False)
+        except Exception:
+            return 0.0
     results = bleu.compute(
         predictions=pred_str, references=ref_str, tokenizer=lambda x: x.split(" ")
     )
     return results["bleu"]
 
 def compute_edit_distance(pred_str: list[str], ref_str: list[str]):
+    """计算归一化编辑距离"""
     results = [Levenshtein.normalized_distance(p, r, processor=str.split) for p, r in zip(pred_str, ref_str)]
     return sum(results)/len(results)
 

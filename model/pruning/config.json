@@ -1,6 +1,7 @@
 {
+  "_name_or_path": "./model",
   "architectures": [
-    "FormulaNet"
+    "VisionEncoderDecoderModel"
   ],
   "decoder": {
     "_name_or_path": "",
@@ -51,7 +52,7 @@
     "max_length": 20,
     "max_position_embeddings": 1027,
     "min_length": 0,
-    "model_type": "vision-encoder-decoder",
+    "model_type": "mbart",
     "no_repeat_ngram_size": 0,
     "num_beam_groups": 1,
     "num_beams": 1,
